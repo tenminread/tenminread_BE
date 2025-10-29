@@ -1,25 +1,18 @@
 ## 📝 PR 유형
-- [ ] ✨ feat: 새로운 기능
-- [ ] 🐛 fix: 버그 수정
-- [ ] ♻️ refactor: 코드 리팩토링
-- [ ] 🎨 design: CSS 등 사용자 UI 디자인 변경
-- [ ] 💎 style: 코드 포맷팅(코드 변경 없음)
-- [ ] 📦 chore: 빌드/설정/자잘한 수정
-- [ ] 💬 comment: 주석 추가/변경
-- [ ] 📚 docs: 문서 수정
-- [ ] 🚑 !HOTFIX: 긴급 버그 수정
-- [ ] 🚀 perf: 성능 개선
+- [ ] ✨ feat
+- [ ] 🐛 fix
+- [ ] ♻️ refactor
+- [ ] 🎨 design
+- [ ] 💎 style
+- [ ] 📦 chore
+- [ ] 💬 comment
+- [ ] 📚 docs
+- [ ] 🚑 !HOTFIX
+- [ ] 🚀 perf
 - [ ] ETC
-
 ## 🔔 관련 이슈
-<!-- ex) closes #1 -->
-
+close #<issue-number>
 ## ✅ 작업 목록
-- [ ] 작업1
-- [ ] 작업2
-
+- [ ] 작업 1
 ## 🍰 논의사항
-<!-- 리뷰 포인트, 질문 등 -->
-
-## 📷 참고자료
-<!-- 스크린샷/GIF/링크 등 -->
+## 📷 ETC
