@@ -1,0 +1,14 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+logs/
+*.log
+!src/main/resources/
+application-*.yml
+application-*.properties
+!application-*local.properties
+
