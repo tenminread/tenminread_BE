@@ -18,5 +18,3 @@ public class Category {
   @Column(name = "categoryName", nullable = false, length = 100)
   private String categoryName;
 }
-java
-코드 복사
