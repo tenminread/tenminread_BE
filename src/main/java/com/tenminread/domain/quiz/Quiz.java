@@ -4,7 +4,11 @@ import com.tenminread.domain.summary.Summary;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(
   name = "Quiz",
@@ -16,9 +20,12 @@ public class Quiz {
   @Column(name = "quizid", nullable = false)
   private Integer quizid;
 
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "sumid", referencedColumnName = "sumid",
-    foreignKey = @ForeignKey(name = "fk_quiz_summary"))
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(
+    name = "sumid",
+    referencedColumnName = "sumid",
+    foreignKey = @ForeignKey(name = "fk_quiz_summary")
+  )
   private Summary summary;
 
   @Column(name = "question", nullable = false, columnDefinition = "TEXT")
@@ -27,6 +34,7 @@ public class Quiz {
   @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
   private String answer;
 
+  @Builder.Default
   @Column(name = "points", nullable = false)
   private Integer points = 1;
 }
