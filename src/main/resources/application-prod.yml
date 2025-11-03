@@ -16,11 +16,8 @@ spring:
 
   jpa:
     hibernate:
-      # (!!!) 운영 환경에서는 'none' 또는 'validate'를 사용해야 합니다.
       ddl-auto: none
 
-# (기타 운영 환경 전용 설정들...)
 logging:
   level:
-    # 운영 환경에서는 INFO 레벨로 로그를 줄입니다.
     com.tenminread: INFO
