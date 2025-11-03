@@ -1,4 +1,4 @@
-package com.tenminread.config; // (패키지 위치는 예시입니다)
+package com.tenminread.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
