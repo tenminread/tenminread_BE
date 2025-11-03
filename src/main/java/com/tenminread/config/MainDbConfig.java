@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-  basePackages = "com.tenminread.domain",
+  basePackages = "com.tenminread.repository",
   entityManagerFactoryRef = "mainEntityManagerFactory",
   transactionManagerRef = "mainTransactionManager"
 )
