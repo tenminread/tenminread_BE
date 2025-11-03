@@ -6,7 +6,7 @@ import lombok.*;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 @Entity
-@Table(name = "User")
+@Table(name = "users")
 public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,7 +14,7 @@ public class User {
   private Integer userid;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "kakaoUser", nullable = false, columnDefinition = "ENUM('Y','N')")
+  @Column(name = "kakaoUser", nullable = false)
   private YesNo kakaoUser;
 
   @Column(name = "nickName", nullable = false, length = 10)

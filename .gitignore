@@ -19,5 +19,5 @@ logs/
 HELP.md
 
 # --- Local configuration files ---
-application-local.yml
-application-local.properties
+application-dev.yml
+application-dev.properties
