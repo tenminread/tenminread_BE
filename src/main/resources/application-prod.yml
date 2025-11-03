@@ -1,0 +1,25 @@
+spring:
+  datasource:
+
+    # (1) 메인 DB (User, Book, Quiz 등)
+    main:
+      jdbc-url:
+      username:
+      password:
+      driver-class-name: org.postgresql.Driver
+
+    # (2) 서브 DB (BookText, SummaryText 등)
+    bookdb:
+      jdbc-url:
+      username:
+      password:
+      driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
