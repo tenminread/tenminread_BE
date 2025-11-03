@@ -24,7 +24,7 @@ import javax.sql.DataSource;
 )
 public class MainDbConfig {
 
-  @Primary // ⬅️ 이 DB를 기본으로 설정
+  @Primary
   @Bean(name = "mainDataSource")
   @ConfigurationProperties(prefix = "spring.datasource.main")
   public DataSource mainDataSource() {
