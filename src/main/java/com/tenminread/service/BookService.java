@@ -6,6 +6,7 @@ import com.tenminread.repository.BookMetaRepository;
 import com.tenminread.repository.BookRepository;
 import com.tenminread.exception.ResourceNotFoundException;
 import com.tenminread.dto.BookIntroResponse;
+import com.tenminread.dto.BookIndexResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,5 +31,15 @@ public class BookService {
 
     // 3. 새 DTO로 변환하여 반환
     return new BookIntroResponse(book, bookMeta);
+  }
+
+  public BookIndexResponse findBookIndexById(Integer bookId) {
+
+    // 1. BookMeta 엔티티 조회 (toc 필드를 위해)
+    BookMeta bookMeta = bookMetaRepository.findById(bookId)
+      .orElseThrow(() -> new ResourceNotFoundException("BookMeta not found with id: " + bookId));
+
+    // 2. 새 DTO로 변환하여 반환
+    return new BookIndexResponse(bookMeta);
   }
 }
