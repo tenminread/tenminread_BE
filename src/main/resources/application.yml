@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: tenminread-be
+
+  # --- 기본 프로필을 'dev'로 지정 ---
+  profiles:
+    active: dev # 아무 설정 없이 실행하면 'dev' 프로필을 사용
+
+  # --- 공통 JPA/Hibernate 설정 ---
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true #
+    hibernate:
+      ddl-auto: none
+
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- 다중 DataSource Bean 중복 허용 ---
+  main:
+    allow-bean-definition-overriding: true

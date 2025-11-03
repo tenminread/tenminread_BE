@@ -1,0 +1,23 @@
+spring:
+  # (1) 메인 DB (실제 운영 서버용)
+  datasource:
+    main:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://[PROD_DB_HOST]:5432/[PROD_MAIN_DB_NAME]
+      username: [PROD_DB_USER]
+      password: [PROD_DB_PASSWORD] # (비밀번호는 환경변수로 주입하는 것을 권장)
+
+    # (2) 서브 DB (실제 운영 서버용)
+    bookdb:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://[PROD_DB_HOST]:5432/[PROD_BOOK_DB_NAME]
+      username: [PROD_DB_USER]
+      password: [PROD_DB_PASSWORD]
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+logging:
+  level:
+    com.tenminread: INFO

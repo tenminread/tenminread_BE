@@ -1,15 +1,21 @@
+# Build files and output
 .gradle/
 build/
 out/
+
+# IDE files
 .idea/
 *.iml
 .vscode/
+
+# OS generated files
 .DS_Store
+
+# Log files
 logs/
 *.log
-!src/main/resources/
-application-*.yml
-application-*.properties
-!application-*local.properties
 
+# Other
 HELP.md
+
+application-dev.yml
