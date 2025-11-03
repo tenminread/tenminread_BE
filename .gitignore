@@ -12,3 +12,4 @@ application-*.yml
 application-*.properties
 !application-*local.properties
 
+HELP.md

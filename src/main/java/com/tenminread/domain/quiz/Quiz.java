@@ -1,6 +1,5 @@
 package com.tenminread.domain.quiz;
 
-import com.tenminread.domain.summary.Summary;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,18 +7,30 @@ import lombok.*;
 @Entity
 @Table(
   name = "Quiz",
-  indexes = @Index(name = "idx_quiz_summary", columnList = "sumid")
+  uniqueConstraints = {
+    @UniqueConstraint(name = "uk_quiz_per_summary", columnNames = {"bookid", "seq", "quiz_no"})
+  },
+  indexes = {
+    @Index(name = "idx_quiz_book_seq", columnList = "bookid, seq")
+  }
 )
 public class Quiz {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "quizid", nullable = false)
   private Integer quizid;
 
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "sumid", referencedColumnName = "sumid",
-    foreignKey = @ForeignKey(name = "fk_quiz_summary"))
-  private Summary summary;
+  // Summary FK 대신 자연키(bookid, seq) 채택 -> bookdb의 SummaryText와 동일
+  @Column(name = "bookid", nullable = false)
+  private Integer bookid;
+
+  @Column(name = "seq", nullable = false)
+  private Integer seq;
+
+  // 요약 단위 내 문항 번호(1..5)
+  @Column(name = "quiz_no", nullable = false)
+  private Short quizNo;
 
   @Column(name = "question", nullable = false, columnDefinition = "TEXT")
   private String question;
@@ -27,6 +38,7 @@ public class Quiz {
   @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
   private String answer;
 
+  @Builder.Default
   @Column(name = "points", nullable = false)
   private Integer points = 1;
 }
