@@ -111,12 +111,56 @@ public class HomeService {
     // 4. 카드 변환
     BookCard todayCard = null;
     if (state.getCurrentBookid() != null) {
-      bookRepo.findById(state.getCurrentBookid())
-        .ifPresent(b -> todayCard = new BookCard(b.getBookid(), b.getTitle(), b.getAuthor(),
-          b.getCategory().getCategoryid()));
+      todayCard = bookRepo.findById(state.getCurrentBookid())
+        .map(b -> new BookCard(
+          b.getBookid(),
+          b.getTitle(),
+          b.getAuthor(),
+          b.getCategory().getCategoryid()))
+        .orElse(null);
     }
 
     return new HomeTodayResponse(todayCard, progress, state.getStatus());
+  }
+
+  // 관심 캐러셀(관심 분야, current_bookid 제외, 5권)
+  @Transactional(readOnly = true)
+  public CarouselResponse getInterestCarousel(Integer userId) {
+    HomeState state = homeStateRepo.findById(userId)
+      .orElseThrow(() -> new IllegalStateException("HomeState가 없습니다. /api/home/today 먼저 호출하세요."));
+    LocalDate anchor = state.getAnchorDate();
+
+    List<Integer> interested = safeInterests(userId);
+    if (interested.isEmpty()) {
+      return new CarouselResponse(List.of(), anchor.toString());
+    }
+
+    List<Book> pool = bookRepo.findAllByCategoryIds(interested);
+
+    // 오늘의 책 제외
+    Integer todayId = state.getCurrentBookid();
+    List<Book> candidates = (todayId == null)
+      ? pool
+      : pool.stream().filter(b -> !Objects.equals(b.getBookid(), todayId)).toList();
+
+    List<Book> picks = pickManyDeterministic(candidates, userId, anchor, "interest", 5);
+    return new CarouselResponse(toCards(picks), anchor.toString());
+  }
+
+  // 부족 캐러셀(관심 분야x, 5권)
+  @Transactional(readOnly = true)
+  public CarouselResponse getDeficitCarousel(Integer userId) {
+    HomeState state = homeStateRepo.findById(userId)
+      .orElseThrow(() -> new IllegalStateException("HomeState가 없습니다. /api/home/today 먼저 호출하세요."));
+    LocalDate anchor = state.getAnchorDate();
+
+    List<Integer> interested = safeInterests(userId);
+    List<Book> pool = interested.isEmpty()
+      ? bookRepo.findAll()  // 관심이 없다면 전체에서 선택
+      : bookRepo.findAllByCategoryIdsNotIn(interested);
+
+    List<Book> picks = pickManyDeterministic(pool, userId, anchor, "deficit", 5);
+    return new CarouselResponse(toCards(picks), anchor.toString());
   }
 
   // ---------- 내부 유틸 ----------
@@ -165,6 +209,29 @@ public class HomeService {
     Random r = new Random(seed);
     Book pick = candidates.get(r.nextInt(candidates.size()));
     return pick.getBookid();
+  }
+
+  // 결정 샘플러(결정적 셔플 후 상위 n개)
+  private List<Book> pickManyDeterministic(List<Book> pool, Integer userId, LocalDate day, String salt, int n) {
+    if (pool == null || pool.isEmpty() || n <= 0) return List.of();
+    long seed = seededLong(userId, day.toString(), salt);
+    Random r = new Random(seed);
+    List<Book> shuffled = new ArrayList<>(pool);
+    for (int i = shuffled.size() - 1; i > 0; i--) {
+      int j = r.nextInt(i + 1);
+      Collections.swap(shuffled, i, j);
+    }
+    int size = Math.min(n, shuffled.size());
+    return shuffled.subList(0, size);
+  }
+
+  private List<BookCard> toCards(List<Book> books) {
+    if (books == null || books.isEmpty()) return List.of();
+    List<BookCard> list = new ArrayList<>(books.size());
+    for (Book b : books) {
+      list.add(new BookCard(b.getBookid(), b.getTitle(), b.getAuthor(), b.getCategory().getCategoryid()));
+    }
+    return list;
   }
 
   private static long seededLong(Integer userId, String... salts) {
