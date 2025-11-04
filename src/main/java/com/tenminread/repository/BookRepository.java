@@ -27,4 +27,13 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
             WHERE b.category.categoryid IN :categoryIds
            """)
   List<Book> findAllByCategoryIds(@Param("categoryIds") List<Integer> categoryIds);
+
+  // 비관심(부족) 카테고리 목록에서 도서 풀 조회 (카테고리 fetch join, DISTINCT)
+  @Query("""
+           SELECT DISTINCT b
+             FROM Book b
+             JOIN FETCH b.category
+            WHERE b.category.categoryid NOT IN :categoryIds
+           """)
+  List<Book> findAllByCategoryIdsNotIn(@Param("categoryIds") List<Integer> categoryIds);
 }
