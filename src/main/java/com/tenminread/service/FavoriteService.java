@@ -8,7 +8,7 @@ import com.tenminread.repository.FavoriteRepository;
 import com.tenminread.repository.UserRepository;
 import com.tenminread.domain.user.User;
 import com.tenminread.exception.ResourceNotFoundException;
-import com.tenminread.dto.BookDtos; // ⬅️ DTO 임포트 변경
+import com.tenminread.dto.BookDtos;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
