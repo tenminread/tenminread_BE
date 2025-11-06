@@ -35,8 +35,20 @@ public class Quiz {
   @Column(name = "question", nullable = false, columnDefinition = "TEXT")
   private String question;
 
-  @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
-  private String answer;
+  @Column(name = "choice1", nullable = false, columnDefinition = "TEXT")
+  private String choice1; // 1번 선택지
+
+  @Column(name = "choice2", nullable = false, columnDefinition = "TEXT")
+  private String choice2; // 2번 선택지
+
+  @Column(name = "choice3", nullable = false, columnDefinition = "TEXT")
+  private String choice3; // 3번 선택지
+
+  @Column(name = "choice4", nullable = false, columnDefinition = "TEXT")
+  private String choice4; // 4번 선택지
+
+  @Column(name = "correct_choice", nullable = false)
+  private Integer correctChoice; // 정답 번호 (1, 2, 3, 4)
 
   @Builder.Default
   @Column(name = "points", nullable = false)
