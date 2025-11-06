@@ -20,6 +20,7 @@ public class BookDtos {
   public static class IntroResponse {
     private Integer bookId;
     private String title;
+    private String author;
     private String hook25Char;
     private String bookIntro;
     private String authorBio;
@@ -27,6 +28,7 @@ public class BookDtos {
     public IntroResponse(Book book, BookMeta bookMeta) {
       this.bookId = book.getBookid();
       this.title = book.getTitle();
+      this.author = book.getAuthor(); // ⬅️ 2. 생성자에 1줄 추가
       this.hook25Char = bookMeta.getHook25char();
       this.bookIntro = bookMeta.getBookIntro();
       this.authorBio = bookMeta.getAuthorBio();
