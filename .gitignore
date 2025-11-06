@@ -19,3 +19,5 @@ logs/
 HELP.md
 
 application-dev.yml
+
+_safety_patches/
