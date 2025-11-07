@@ -1,45 +1,35 @@
-version: "3.9"
-name: tenminread
-
 services:
-  postgres:
+  db:
     image: postgres:16
     container_name: tenminread-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${MAIN_DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${MAIN_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     restart: unless-stopped
 
   app:
+    # 새 ECR 리포지토리/태그를 .env의 APP_IMAGE에서 주입
     image: ${APP_IMAGE}
     container_name: tenminread-app
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      DB_HOST: postgres
-      DB_PORT: "5432"
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      MAIN_DB_NAME: ${MAIN_DB_NAME}
-      BOOK_DB_NAME: ${BOOK_DB_NAME}
-      SERVER_PORT: "8080"
+    env_file:
+      - .env
     ports:
       - "8080:8080"
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+    # 초기 구동 대기 중 503/빈응답이 나올 수 있으므로 과격한 헬스체크는 생략
     restart: unless-stopped
 
 volumes:
