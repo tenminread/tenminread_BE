@@ -1,0 +1,12 @@
+spring:
+  # 테스트에서는 DB/ORM/Flyway 자동설정 자체를 제외하여
+  # DataSource가 없어도 컨텍스트 로딩이 가능하도록 합니다.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+
+  # 혹시 모를 충돌 방지
+  flyway:
+    enabled: false

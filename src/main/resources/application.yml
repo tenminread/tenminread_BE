@@ -2,21 +2,36 @@ spring:
   application:
     name: tenminread-be
 
-  # --- 기본 프로필을 'dev'로 지정 ---
+  # 기본 활성 프로필
   profiles:
-    active: dev # 아무 설정 없이 실행하면 'dev' 프로필을 사용
+    active: dev
 
-  # --- 공통 JPA/Hibernate 설정 ---
   jpa:
-    show-sql: true
+    show-sql: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: none        # 운영은 Flyway가 스키마 관리
     properties:
       hibernate:
-        format_sql: true #
-    hibernate:
-      ddl-auto: none
-
+        format_sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-  # --- 다중 DataSource Bean 중복 허용 ---
+  # 부트 기본 Flyway 자동설정은 사용 안 하고(다중 DS 직접 구성)
+  flyway:
+    enabled: false
+
   main:
     allow-bean-definition-overriding: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+
+logging:
+  level:
+    root: INFO
+    com.tenminread: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN

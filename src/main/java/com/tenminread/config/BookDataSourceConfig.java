@@ -15,6 +15,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 import java.util.HashMap;
 
+@Profile("!test")
 @Configuration
 @EnableJpaRepositories(
   basePackages = "com.tenminread.repository.book",
@@ -24,7 +25,7 @@ import java.util.HashMap;
 public class BookDataSourceConfig {
 
   @Bean
-  @ConfigurationProperties("spring.datasource.book")
+  @ConfigurationProperties("spring.datasource.bookdb")   // ✅ bookdb 로 통일
   public DataSourceProperties bookDataSourceProperties() {
     return new DataSourceProperties();
   }
@@ -46,7 +47,7 @@ public class BookDataSourceConfig {
 
     var emf = new LocalContainerEntityManagerFactoryBean();
     emf.setDataSource(dataSource);
-    emf.setPackagesToScan("com.tenminread.domain.book");
+    emf.setPackagesToScan("com.tenminread.domain.book"); // ✅ 실제 엔티티 패키지 확인
     emf.setJpaVendorAdapter(vendorAdapter);
     emf.setJpaPropertyMap(props);
     emf.setPersistenceUnitName("book-pu");
