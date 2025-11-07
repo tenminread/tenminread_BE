@@ -1,35 +1,48 @@
+name: tenminread
+
 services:
-  db:
+  postgres:
     image: postgres:16
     container_name: tenminread-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # 최초 초기화시에 메인 DB 자동 생성
       POSTGRES_DB: ${MAIN_DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
+      # (선택) 볼륨이 완전 새로 생성될 때만 아래 init 스크립트가 실행됨
       - ./docker/init:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${MAIN_DB_NAME}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   app:
-    # 새 ECR 리포지토리/태그를 .env의 APP_IMAGE에서 주입
     image: ${APP_IMAGE}
     container_name: tenminread-app
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-    env_file:
-      - .env
+    environment:
+      # 스프링 프로필/포트
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SERVER_PORT: ${SERVER_PORT}
+      # application-prod.yml에서 참조하는 치환 변수들
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MAIN_DB_NAME: ${MAIN_DB_NAME}
+      BOOK_DB_NAME: ${BOOK_DB_NAME}
     ports:
       - "8080:8080"
-    # 초기 구동 대기 중 503/빈응답이 나올 수 있으므로 과격한 헬스체크는 생략
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
 volumes:
