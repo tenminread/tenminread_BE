@@ -3,6 +3,12 @@ name: Deploy (EC2 + Postgres, no Nginx)
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch: {}
+
+# 레포 설정은 조직/레포에서 Read&Write로 이미 여셨으니
+# 여기서는 굳이 write를 강제하지 않습니다.
+permissions:
+  contents: read
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -17,6 +23,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # ✅ JAR 먼저 생성 (Dockerfile에서 COPY build/libs/*.jar 성공하도록)
+      - name: Build (Gradle)
+        run: ./gradlew clean bootJar -x test
+
+      - name: Verify jar exists
+        run: ls -al build/libs
 
       - name: Configure AWS (push to ECR)
         uses: aws-actions/configure-aws-credentials@v4
@@ -33,19 +55,18 @@ jobs:
           docker build -t $APP_IMAGE .
           docker push $APP_IMAGE
 
-      # ---------- 여기서 레포 파일들을 EC2로 복사 ----------
+      # docker/init/* 경로가 없으면 실패할 수 있어 안전하게 compose만 복사
       - name: Copy docker files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml,docker/init/*"
+          source: "docker-compose.yml"
           target: "/opt/tenminread/"
           overwrite: true
           strip_components: 0
 
-      # ---------- EC2에서 compose 적용 ----------
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -55,10 +76,11 @@ jobs:
           script_stop: true
           script: |
             set -euo pipefail
+
             sudo mkdir -p /opt/tenminread/docker/init
             sudo chown -R ${USER}:${USER} /opt/tenminread
 
-            # .env 생성/갱신 (민감정보는 Secrets에서 주입)
+            # .env 생성 (Compose에서 읽어감)
             cat > /opt/tenminread/.env <<'EOF'
             APP_IMAGE=${{ env.APP_IMAGE }}
             DB_USER=${{ secrets.DB_USER }}
@@ -67,17 +89,14 @@ jobs:
             BOOK_DB_NAME=${{ secrets.BOOK_DB_NAME }}
             EOF
 
-            # ECR 로그인(EC2 Role 권장. Role 없으면 aws configure 필요)
+            # ECR 로그인
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
               | docker login --username AWS --password-stdin ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
             cd /opt/tenminread
-
-            # 이미지 최신 받기 + 배포
             docker compose pull || true
             docker compose up -d
 
-            # 헬스체크 대기
             echo "Waiting for app health..."
             for i in {1..30}; do
               if curl -fsS http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
@@ -86,6 +105,7 @@ jobs:
               fi
               sleep 2
             done
+
             echo "Healthcheck failed"
-            docker compose logs --no-color --tail=200
+            docker compose logs --no-color --tail=200 app || true
             exit 1
