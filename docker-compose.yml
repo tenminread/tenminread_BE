@@ -1,20 +1,14 @@
-name: tenminread
-
 services:
   postgres:
     image: postgres:16
-    container_name: tenminread-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      # 최초 초기화 시 생성될 "메인" DB
       POSTGRES_DB: ${MAIN_DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      # 볼륨이 "새로" 만들어질 때만 실행됩니다.
       - ./docker/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      # 메인 DB까지 준비되었는지 확인
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${MAIN_DB_NAME}"]
       interval: 10s
       timeout: 5s
@@ -23,40 +17,11 @@ services:
 
   app:
     image: ${APP_IMAGE}
-    container_name: tenminread-app
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      # ---- 스프링 프로필 ----
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-
-      # ---- (결정타) 멀티 데이터소스 직접 바인딩 ----
-      # 'BookDataSourceConfig' / 'MainDataSourceConfig' 가 @ConfigurationProperties 로 받아가므로
-      # spring.datasource.<prefix>.url 형태를 환경에서 정확히 넘깁니다.
-      SPRING_DATASOURCE_MAIN_URL: jdbc:postgresql://tenminread-postgres:5432/${MAIN_DB_NAME}
-      SPRING_DATASOURCE_MAIN_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_MAIN_PASSWORD: ${DB_PASSWORD}
-
-      SPRING_DATASOURCE_BOOKDB_URL: jdbc:postgresql://tenminread-postgres:5432/${BOOK_DB_NAME}
-      SPRING_DATASOURCE_BOOKDB_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_BOOKDB_PASSWORD: ${DB_PASSWORD}
-
-      # (선택) 드라이버 명시 — 보수적으로 추가
-      SPRING_DATASOURCE_MAIN_DRIVER_CLASS_NAME: org.postgresql.Driver
-      SPRING_DATASOURCE_BOOKDB_DRIVER_CLASS_NAME: org.postgresql.Driver
-
-      # (선택) 서버 포트
-      SERVER_PORT: ${SERVER_PORT}
-
-      # ---- 참고: 기존 application-prod.yml 치환변수도 유지 가능 ----
-      # (아래 5개는 불필요하지만 남겨도 무해합니다. 우선순위는 SPRING_DATASOURCE_* 가 더 높습니다.)
-      DB_HOST: tenminread-postgres
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      MAIN_DB_NAME: ${MAIN_DB_NAME}
-      BOOK_DB_NAME: ${BOOK_DB_NAME}
-
+    env_file:
+      - .env    # ✅ 여기서 읽어옵니다
     ports:
       - "8080:8080"
     healthcheck:
@@ -65,6 +30,3 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
-
-volumes:
-  pgdata:

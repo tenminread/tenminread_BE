@@ -1,22 +1,43 @@
 spring:
-  datasource:
-    main:
-      driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://${DB_HOST:postgres}:5432/${MAIN_DB_NAME:tenminread_main_db}   # ← 변경
-      username: ${DB_USER:postgres}
-      password: ${DB_PASSWORD:1234}
-
-    bookdb:
-      driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://${DB_HOST:postgres}:5432/${BOOK_DB_NAME:tenminread_book_db}   # ← 변경
-      username: ${DB_USER:postgres}
-      password: ${DB_PASSWORD:1234}
-
   jpa:
-    show-sql: false
     open-in-view: false
+    show-sql: false
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
         format_sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: false
+
+  datasource:
+    main:
+      jdbc-url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${MAIN_DB_NAME}
+      username: ${DB_USER}
+      password: ${DB_PASSWORD}
+    bookdb:
+      jdbc-url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${BOOK_DB_NAME}
+      username: ${DB_USER}
+      password: ${DB_PASSWORD}
+
+# ✅ CORS 허용 오리진 (본 운영 도메인 + 5173 포트 + 로컬 개발)
+app:
+  cors:
+    allowed-origins: "https://tenminread.vercel.app,https://tenminread.vercel.app:5173,http://tenminread.vercel.app:5173,http://localhost:5173,http://127.0.0.1:5173"
+
+# (선택 권장) 프록시/ALB 뒤에서 원본 스킴/호스트 보존
+server:
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
