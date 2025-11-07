@@ -2,17 +2,16 @@ spring:
   datasource:
     main:
       driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://[PROD_DB_HOST]:5432/[PROD_MAIN_DB_NAME]
-      username: [PROD_DB_USER]
-      password: [PROD_DB_PASSWORD]
+      url: jdbc:postgresql://${DB_HOST:postgres}:5432/${MAIN_DB_NAME:tenminread_main_db}
+      username: ${DB_USER:postgres}
+      password: ${DB_PASSWORD:change_me}
     bookdb:
       driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://[PROD_DB_HOST]:5432/[PROD_BOOK_DB_NAME]
-      username: [PROD_DB_USER]
-      password: [PROD_DB_PASSWORD]
+      url: jdbc:postgresql://${DB_HOST:postgres}:5432/${BOOK_DB_NAME:tenminread_book_db}
+      username: ${DB_USER:postgres}
+      password: ${DB_PASSWORD:change_me}
 
   jpa:
-    # 운영은 SQL 출력/지연 로딩에 따른 부하를 줄이고, DDL은 none으로 유지
     show-sql: false
     open-in-view: false
     properties:
@@ -23,14 +22,13 @@ spring:
 
 logging:
   level:
-    # 애플리케이션 로그는 INFO, Hibernate SQL/바인딩은 WARN으로 소음 최소화
     root: INFO
     com.tenminread: INFO
     org.hibernate.SQL: WARN
-    org.hibernate.orm.jdbc.bind:
+    org.hibernate.orm.jdbc.bind: WARN   # ← 기존에 값이 비어 있었음. WARN으로 고정
+
 management:
   endpoints:
     web:
       exposure:
         include: "health,info"
-
