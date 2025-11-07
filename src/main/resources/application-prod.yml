@@ -2,12 +2,12 @@ spring:
   datasource:
     main:
       driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://${DB_HOST:postgres}:5432/${MAIN_DB_NAME:tenminread_main_db}
+      jdbc-url: jdbc:postgresql://${DB_HOST:postgres}:5432/${MAIN_DB_NAME:tenminread_main_db}
       username: ${DB_USER:postgres}
       password: ${DB_PASSWORD:1234}
     bookdb:
       driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://${DB_HOST:postgres}:5432/${BOOK_DB_NAME:tenminread_book_db}
+      jdbc-url: jdbc:postgresql://${DB_HOST:postgres}:5432/${BOOK_DB_NAME:tenminread_book_db}
       username: ${DB_USER:postgres}
       password: ${DB_PASSWORD:1234}
 
