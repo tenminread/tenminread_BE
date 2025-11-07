@@ -5,6 +5,11 @@ on:
     branches: [ "main" ]
   workflow_dispatch: {}
 
+# 레포 설정은 조직/레포에서 Read&Write로 이미 여셨으니
+# 여기서는 굳이 write를 강제하지 않습니다.
+permissions:
+  contents: read
+
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_ACCOUNT: ${{ secrets.ECR_ACCOUNT }}
@@ -19,9 +24,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Java 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
       # ✅ JAR 먼저 생성 (Dockerfile에서 COPY build/libs/*.jar 성공하도록)
       - name: Build (Gradle)
         run: ./gradlew clean bootJar -x test
+
+      - name: Verify jar exists
+        run: ls -al build/libs
 
       - name: Configure AWS (push to ECR)
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,13 +55,14 @@ jobs:
           docker build -t $APP_IMAGE .
           docker push $APP_IMAGE
 
+      # docker/init/* 경로가 없으면 실패할 수 있어 안전하게 compose만 복사
       - name: Copy docker files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml,docker/init/*"
+          source: "docker-compose.yml"
           target: "/opt/tenminread/"
           overwrite: true
           strip_components: 0
@@ -58,10 +76,11 @@ jobs:
           script_stop: true
           script: |
             set -euo pipefail
+
             sudo mkdir -p /opt/tenminread/docker/init
             sudo chown -R ${USER}:${USER} /opt/tenminread
 
-            # .env 생성
+            # .env 생성 (Compose에서 읽어감)
             cat > /opt/tenminread/.env <<'EOF'
             APP_IMAGE=${{ env.APP_IMAGE }}
             DB_USER=${{ secrets.DB_USER }}
@@ -70,7 +89,7 @@ jobs:
             BOOK_DB_NAME=${{ secrets.BOOK_DB_NAME }}
             EOF
 
-            # ECR 로그인 (EC2 Role=ReadOnly여도 Pull OK)
+            # ECR 로그인
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
               | docker login --username AWS --password-stdin ${{ secrets.ECR_ACCOUNT }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
