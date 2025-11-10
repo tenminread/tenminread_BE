@@ -1,4 +1,3 @@
-// src/main/java/com/tenminread/config/SecurityConfig.java
 package com.tenminread.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +22,9 @@ import java.util.stream.Collectors;
 public class SecurityConfig {
 
   /**
-   * 쉼표(,)로 구분된 허용 오리진 목록을 환경설정에서 주입.
-   * 예) application-prod.yml
-   * app:
-   *   cors:
-   *     allowed-origins: "https://tenminread.vercel.app,https://tenminread.vercel.app:5173,http://tenminread.vercel.app:5173,http://localhost:5173,http://127.0.0.1:5173"
+   * 쉼표(,) 구분 허용 오리진 목록.
+   * 예) prod: app.cors.allowed-origins: "https://tenminread.vercel.app"
+   * dev:  app.cors.allowed-origins: "http://localhost:5173,http://127.0.0.1:5173"
    */
   @Value("${app.cors.allowed-origins:}")
   private String allowedOriginsProp;
@@ -38,11 +35,11 @@ public class SecurityConfig {
       .cors(cors -> cors.configurationSource(corsConfigurationSource()))
       .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(auth -> auth
-        // 프리플라이트
+        // 프리플라이트는 항상 허용
         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-        // 헬스체크
+        // 헬스체크/프로브
         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-        // (선택) 스웨거 오픈
+        // (선택) 스웨거
         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
         // 현재 단계: 전체 오픈
         .anyRequest().permitAll()
@@ -54,8 +51,14 @@ public class SecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration cfg = new CorsConfiguration();
 
-    // 프로퍼티가 비었으면 로컬 기본 허용
-    List<String> defaults = List.of("http://localhost:*", "http://127.0.0.1:*");
+    // 기본 로컬 포트(개발 편의)
+    List<String> defaults = List.of(
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "http://localhost:3000",
+      "http://127.0.0.1:3000"
+    );
+
     List<String> fromProp = (allowedOriginsProp == null || allowedOriginsProp.isBlank())
       ? List.of()
       : Arrays.stream(allowedOriginsProp.split(","))
@@ -63,8 +66,11 @@ public class SecurityConfig {
       .filter(s -> !s.isEmpty())
       .collect(Collectors.toList());
 
-    // 와일드카드 포트/패턴을 허용하려면 Patterns 사용 (credentials 호환)
-    cfg.setAllowedOriginPatterns(fromProp.isEmpty() ? defaults : fromProp);
+    // 프로퍼티가 있으면 그것을, 없으면 기본 로컬 도메인 사용
+    List<String> allowedOrigins = fromProp.isEmpty() ? defaults : fromProp;
+
+    // ✅ credentials(true)와 호환을 위해 allowedOrigins(정확한 도메인) 사용
+    cfg.setAllowedOrigins(allowedOrigins);
 
     cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
     cfg.setAllowedHeaders(List.of("*"));
@@ -76,6 +82,4 @@ public class SecurityConfig {
     source.registerCorsConfiguration("/**", cfg);
     return source;
   }
-
-  // 별도 CorsFilter 빈 생성 금지 (Security가 위 설정으로 처리합니다)
 }

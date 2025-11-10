@@ -22,12 +22,12 @@ spring:
       username: ${DB_USER}
       password: ${DB_PASSWORD}
 
-# ✅ CORS 허용 오리진 (본 운영 도메인 + 5173 포트 + 로컬 개발)
+# ✅ 배포용 CORS 오리진 (정확한 도메인만)
 app:
   cors:
-    allowed-origins: "https://tenminread.vercel.app,https://tenminread.vercel.app:5173,http://tenminread.vercel.app:5173,http://localhost:5173,http://127.0.0.1:5173"
+    allowed-origins: "https://tenminread.vercel.app,http://localhost:5173,http://127.0.0.1:5173"
 
-# (선택 권장) 프록시/ALB 뒤에서 원본 스킴/호스트 보존
+# ✅ ALB 뒤 원본 스킴/호스트 헤더 신뢰
 server:
   forward-headers-strategy: framework
 
