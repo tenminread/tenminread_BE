@@ -1,7 +1,6 @@
 services:
-  db:
+  postgres:
     image: postgres:16
-    container_name: tenminread-postgres
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -9,28 +8,25 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/init:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${MAIN_DB_NAME}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   app:
-    # 새 ECR 리포지토리/태그를 .env의 APP_IMAGE에서 주입
     image: ${APP_IMAGE}
-    container_name: tenminread-app
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
     env_file:
-      - .env
+      - .env    # ✅ 여기서 읽어옵니다
     ports:
       - "8080:8080"
-    # 초기 구동 대기 중 503/빈응답이 나올 수 있으므로 과격한 헬스체크는 생략
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
-
-volumes:
-  pgdata:
